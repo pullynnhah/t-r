@@ -28,12 +28,34 @@ app.post("/tweets", (req, res) => {
   if (!tweet) return res.status(400).send("Todos os campos são obrigatórios!");
   if (Object.keys(req.body).length !== 1) return res.sendStatus(400);
 
-  TWEETS_DB.push({ username, tweet });
+  TWEETS_DB.push({ id: TWEETS_DB.length + 1, username, tweet });
   res.status(201).send("OK");
 });
 
-// FIXME: remove both routes bellow
-app.get("/users", (req, res) => res.send(USERS_DB));
-app.get("/all-tweets", (req, res) => res.send(TWEETS_DB));
+app.get("/tweets", (req, res) => {
+  let { page } = req.query;
+
+  const avatars = USERS_DB.reduce((ac, user) => ({ ...ac, [user.username]: user.avatar }), {});
+  if (!page) {
+    const tweets = TWEETS_DB.slice(-10).map(tweet => ({
+      ...tweet,
+      avatar: avatars[tweet.username]
+    }));
+    return res.send(tweets);
+  }
+  page = Number(page);
+
+  if (isNaN(page) || page < 1 || page > Math.ceil(TWEETS_DB.length / 10)) {
+    return res.status(400).send("Informe uma página válida!");
+  }
+  const start = -(page * 10);
+  const end = TWEETS_DB.length - start - 10;
+  res.send(
+    TWEETS_DB.slice(start, end).map(tweet => ({
+      ...tweet,
+      avatar: avatars[tweet.username]
+    }))
+  );
+});
 
 app.listen(PORT, () => console.log(`Running @ PORT: ${PORT}`));
