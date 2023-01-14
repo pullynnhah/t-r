@@ -18,6 +18,20 @@ app.post("/sign-up", (req, res) => {
   res.status(201).send("OK");
 });
 
+app.post("/tweets", (req, res) => {
+  const { user: username } = req.headers;
+  if (!username) return req.sendStatus(400);
+  if (!USERS_DB.find(user => user.username === username)) return req.sendStatus(401);
+
+  const { tweet } = req.body;
+
+  if (!tweet) return res.status(400).send("Todos os campos são obrigatórios!");
+  if (Object.keys(req.body).length !== 1) return res.sendStatus(400);
+
+  TWEETS_DB.push({ username, tweet });
+  res.status(201).send("OK");
+});
+
 // FIXME: remove both routes bellow
 app.get("/users", (req, res) => res.send(USERS_DB));
 app.get("/all-tweets", (req, res) => res.send(TWEETS_DB));
