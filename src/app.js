@@ -28,7 +28,7 @@ app.post("/tweets", (req, res) => {
   if (!tweet) return res.status(400).send("Todos os campos são obrigatórios!");
   if (Object.keys(req.body).length !== 1) return res.sendStatus(400);
 
-  tweets_db.push({ id: tweets_db.length + 1, username, tweet });
+  tweets_db.push({ username, tweet });
   res.status(201).send("OK");
 });
 
