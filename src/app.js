@@ -2,8 +2,8 @@ import express, { json } from "express";
 import cors from "cors";
 
 const PORT = 5000;
-const USERS_DB = [];
-const TWEETS_DB = [];
+const users_db = [];
+const tweets_db = [];
 
 const app = express();
 app.use(json());
@@ -13,31 +13,31 @@ app.post("/sign-up", (req, res) => {
   const { username, avatar } = req.body;
   if (!(username && avatar)) return res.status(400).send("Todos os campos são obrigatórios!");
   if (Object.keys(req.body).length !== 2) return res.sendStatus(400);
-  if (USERS_DB.find(user => user.username === username)) return res.sendStatus(400);
-  USERS_DB.push({ username, avatar });
+  if (users_db.find(user => user.username === username)) return res.sendStatus(400);
+  users_db.push({ username, avatar });
   res.status(201).send("OK");
 });
 
 app.post("/tweets", (req, res) => {
   const { user: username } = req.headers;
   if (!username) return res.sendStatus(400);
-  if (!USERS_DB.find(user => user.username === username)) return res.sendStatus(401);
+  if (!users_db.find(user => user.username === username)) return res.sendStatus(401);
 
   const { tweet } = req.body;
 
   if (!tweet) return res.status(400).send("Todos os campos são obrigatórios!");
   if (Object.keys(req.body).length !== 1) return res.sendStatus(400);
 
-  TWEETS_DB.push({ id: TWEETS_DB.length + 1, username, tweet });
+  tweets_db.push({ id: tweets_db.length + 1, username, tweet });
   res.status(201).send("OK");
 });
 
 app.get("/tweets", (req, res) => {
   let { page } = req.query;
 
-  const avatars = USERS_DB.reduce((ac, user) => ({ ...ac, [user.username]: user.avatar }), {});
+  const avatars = users_db.reduce((ac, user) => ({ ...ac, [user.username]: user.avatar }), {});
   if (!page) {
-    const tweets = TWEETS_DB.slice(-10).map(tweet => ({
+    const tweets = tweets_db.slice(-10).map(tweet => ({
       ...tweet,
       avatar: avatars[tweet.username]
     }));
@@ -45,13 +45,13 @@ app.get("/tweets", (req, res) => {
   }
   page = Number(page);
 
-  if (isNaN(page) || page < 1 || page > Math.floor(TWEETS_DB.length / 10) + 1) {
+  if (isNaN(page) || page < 1 || page > Math.floor(tweets_db.length / 10) + 1) {
     return res.status(400).send("Informe uma página válida!");
   }
   const start = -(page * 10);
-  const end = TWEETS_DB.length + start + 10;
+  const end = tweets_db.length + start + 10;
   res.send(
-    TWEETS_DB.slice(start, end).map(tweet => ({
+    tweets_db.slice(start, end).map(tweet => ({
       ...tweet,
       avatar: avatars[tweet.username]
     }))
@@ -61,13 +61,15 @@ app.get("/tweets", (req, res) => {
 app.get("/tweets/:username", (req, res) => {
   const { username } = req.params;
   if (!username) return res.sendStatus(400);
-  const user = USERS_DB.find(user => user.username === username);
+  const user = users_db.find(user => user.username === username);
   if (!user) return res.sendStatus(400);
   res.send(
-    TWEETS_DB.filter(tweet => tweet.username === username).map(tweet => ({
-      ...tweet,
-      avatar: user.avatar
-    }))
+    tweets_db
+      .filter(tweet => tweet.username === username)
+      .map(tweet => ({
+        ...tweet,
+        avatar: user.avatar
+      }))
   );
 });
 
