@@ -1,5 +1,5 @@
-import cors from "cors";
 import express, { json } from "express";
+import cors from "cors";
 
 const PORT = 5000;
 const USERS_DB = [];
@@ -14,6 +14,7 @@ app.post("/sign-up", (req, res) => {
   if (!(username && avatar)) return res.status(400).send("Todos os campos são obrigatórios!");
   if (Object.keys(req.body).length !== 2) return res.sendStatus(400);
   if (USERS_DB.find(user => user.username === username)) return res.sendStatus(400);
+  USERS_DB.push({ username, avatar });
   res.status(201).send("OK");
 });
 
