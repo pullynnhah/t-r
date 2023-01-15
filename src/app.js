@@ -20,8 +20,8 @@ app.post("/sign-up", (req, res) => {
 
 app.post("/tweets", (req, res) => {
   const { user: username } = req.headers;
-  if (!username) return req.sendStatus(400);
-  if (!USERS_DB.find(user => user.username === username)) return req.sendStatus(401);
+  if (!username) return res.sendStatus(400);
+  if (!USERS_DB.find(user => user.username === username)) return res.sendStatus(401);
 
   const { tweet } = req.body;
 
@@ -45,15 +45,28 @@ app.get("/tweets", (req, res) => {
   }
   page = Number(page);
 
-  if (isNaN(page) || page < 1 || page > Math.ceil(TWEETS_DB.length / 10)) {
+  if (isNaN(page) || page < 1 || page > Math.floor(TWEETS_DB.length / 10) + 1) {
     return res.status(400).send("Informe uma página válida!");
   }
   const start = -(page * 10);
-  const end = TWEETS_DB.length - start - 10;
+  const end = TWEETS_DB.length + start + 10;
   res.send(
     TWEETS_DB.slice(start, end).map(tweet => ({
       ...tweet,
       avatar: avatars[tweet.username]
+    }))
+  );
+});
+
+app.get("/tweets/:username", (req, res) => {
+  const { username } = req.params;
+  if (!username) return res.sendStatus(400);
+  const user = USERS_DB.find(user => user.username === username);
+  if (!user) return res.sendStatus(400);
+  res.send(
+    TWEETS_DB.filter(tweet => tweet.username === username).map(tweet => ({
+      ...tweet,
+      avatar: user.avatar
     }))
   );
 });
