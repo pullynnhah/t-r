@@ -1,7 +1,7 @@
 import express, { json } from "express";
 import cors from "cors";
 
-const PORT = 5000;
+const PORT = 3001;
 const users_db = [];
 const tweets_db = [];
 
